@@ -1,0 +1,47 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Deploy via SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: 45.192.104.22
+          port: 2222
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          source: dist/
+          target: /tmp/
+          strip_components: 1
+
+      - name: Move to web root
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: 45.192.104.22
+          port: 2222
+          username: root
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          script: |
+            rm -rf /var/www/test/*
+            cp -r /tmp/dist/* /var/www/test/
+            rm -rf /tmp/dist
+            echo "✅ 部署完成"
