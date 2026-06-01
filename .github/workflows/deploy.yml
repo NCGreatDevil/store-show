@@ -42,6 +42,7 @@ jobs:
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           script: |
             rm -rf /var/www/test/*
-            cp -r /tmp/dist/* /var/www/test/
-            rm -rf /tmp/dist
+            cp -r /tmp/index.html /tmp/assets /var/www/test/
+            rm -f /tmp/index.html
+            rm -rf /tmp/assets
             echo "✅ 部署完成"
