@@ -100,7 +100,7 @@ export function useUserProfile() {
   
   /**
    * 加载用户信息列表
-   * 从 PocketBase 获取所有用户信息记录
+   * 从 PocketBase 获取当前登录用户的数据
    */
   const loadList = async (): Promise<void> => {
     // 检查是否正在加载或已加载完成
@@ -110,9 +110,11 @@ export function useUserProfile() {
     loadingLock = true
     
     try {
-      // 从 PocketBase 获取完整列表（最多 500 条记录）
+      // 从 PocketBase 获取当前用户的完整列表（最多 500 条记录）
+      // filter: 只返回当前登录用户的数据
       // sort: '-created' 表示按创建时间倒序排列
       const result = await collection.getFullList(500, {
+        filter: `user_id = '${pb.authStore.record?.id}'`,
         sort: '-created'
       })
       
