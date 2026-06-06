@@ -23,7 +23,7 @@ import PocketBase from 'pocketbase'
  * - Vite 要求环境变量以 VITE_ 开头才能在客户端访问
  * - 使用 import.meta.env 访问（Vite 特有方式）
  */
-const POCKETBASE_URL = import.meta.env.VITE_POCKETBASE_URL || 'https://ma.cloud-ip.cc'
+const POCKETBASE_URL = '/'  // 使用根路径，确保请求从 /api 开始
 
 /**
  * PocketBase 客户端实例
