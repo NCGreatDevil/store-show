@@ -12,6 +12,23 @@
     - 例如：访问 /login 时显示 Login.vue，访问 / 时显示 Home.vue
   -->
   <router-view />
+
+  <van-tabbar
+    route
+    fixed
+    placeholder
+    active-color="#409eff"
+    inactive-color="#909399"
+  >
+    <van-tabbar-item to="/" icon="shop-o">首页</van-tabbar-item>
+    <van-tabbar-item to="/scan" icon="scan">扫描</van-tabbar-item>
+    <van-tabbar-item to="/cart" icon="shopping-cart-o" >
+      收款
+    </van-tabbar-item>
+    <van-tabbar-item to="/products" icon="orders-o">商品</van-tabbar-item>
+  </van-tabbar>
+
+
 </template>
 
 <script setup lang="ts">
@@ -30,6 +47,17 @@
  */
 
 // 根组件不需要额外的逻辑，router-view 会自动渲染匹配的页面
+
+import { ref } from 'vue'
+
+// 选项卡切换事件处理
+const active = ref(0)
+
+// 选项卡切换事件处理
+const onChange = (index: number): void => {
+  active.value = index
+  console.log('当前选中:', index)
+}
 </script>
 
 <style>

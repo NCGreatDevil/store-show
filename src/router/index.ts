@@ -52,6 +52,27 @@ const routes: RouteRecordRaw[] = [
     name: ROUTE_NAMES.REGISTER,
     component: Register
   },
+  // 扫描页：需要登录认证（复用 Home 组件）
+  {
+    path: '/scan',
+    name: 'scan',
+    component: Home,
+    meta: { requiresAuth: true }
+  },
+  // 收款页：需要登录认证（复用 Home 组件）
+  {
+    path: '/cart',
+    name: 'cart',
+    component: Home,
+    meta: { requiresAuth: true }
+  },
+  // 商品页：需要登录认证（复用 Home 组件）
+  {
+    path: '/products',
+    name: 'products',
+    component: Home,
+    meta: { requiresAuth: true }
+  },
   // 404 页面：捕获所有未匹配的路由
   {
     path: '/:pathMatch(.*)*',
