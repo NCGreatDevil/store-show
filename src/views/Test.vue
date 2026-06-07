@@ -21,11 +21,11 @@
       v-model="refreshing" 
       @refresh="onRefresh"
     >
-      <!-- 无限滚动列表组件 -->
+      <!-- 无限滚动列表组件 --><!--原先是这样： finished-text="没有更多了"  -->
       <van-list
         v-model:loading="loading"
         :finished="finished"
-        finished-text="没有更多了"
+        finished-text="" 
         @load="onLoad"
       >
         <!-- 每个用户信息项（支持滑动删除） -->
