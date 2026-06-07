@@ -14,6 +14,7 @@
   <router-view />
 
   <van-tabbar
+    v-if="showTabbar"
     route
     fixed
     placeholder
@@ -48,7 +49,16 @@
 
 // 根组件不需要额外的逻辑，router-view 会自动渲染匹配的页面
 
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
+
+// 获取当前路由
+const route = useRoute()
+
+// 判断是否显示底部标签栏（根据路由 meta 配置）
+const showTabbar = computed(() => {
+  return !route.meta.hideTabbar
+})
 
 // 选项卡切换事件处理
 const active = ref(0)

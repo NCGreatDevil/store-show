@@ -40,17 +40,19 @@ const routes: RouteRecordRaw[] = [
     component: Home,
     meta: { requiresAuth: true }
   },
-  // 登录页：无需认证
+  // 登录页：无需认证，不显示底部导航
   {
     path: '/login',
     name: ROUTE_NAMES.LOGIN,
-    component: Login
+    component: Login,
+    meta: { hideTabbar: true }
   },
-  // 注册页：无需认证
+  // 注册页：无需认证，不显示底部导航
   {
     path: '/register',
     name: ROUTE_NAMES.REGISTER,
-    component: Register
+    component: Register,
+    meta: { hideTabbar: true }
   },
   // 扫描页：需要登录认证（复用 Home 组件）
   {
