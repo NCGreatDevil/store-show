@@ -27,6 +27,7 @@
       收款
     </van-tabbar-item>
     <van-tabbar-item to="/products" icon="orders-o">商品</van-tabbar-item>
+    <van-tabbar-item to="/test" icon="orders-o">测试</van-tabbar-item>
   </van-tabbar>
 
 

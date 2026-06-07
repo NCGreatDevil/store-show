@@ -11,6 +11,9 @@ import Register from '../views/Register.vue'
 import Home from '../views/Home.vue'
 import NotFound from '../views/NotFound.vue'
 import pb from '../api/pocketbase'
+import Test from '../views/Test.vue'
+
+
 
 /**
  * 路由名称常量
@@ -21,7 +24,8 @@ export const ROUTE_NAMES = {
   HOME: 'home',           // 首页（用户信息管理）
   LOGIN: 'login',         // 登录页
   REGISTER: 'register',   // 注册页
-  NOT_FOUND: 'notFound'   // 404 页面
+  NOT_FOUND: 'notFound',   // 404 页面
+  TEST: 'test'           // 测试页
 } as const
 
 /**
@@ -80,6 +84,13 @@ const routes: RouteRecordRaw[] = [
     path: '/:pathMatch(.*)*',
     name: ROUTE_NAMES.NOT_FOUND,
     component: NotFound
+  },
+  // 测试页：需要登录认证（复用 Home 组件）
+  {
+    path: '/test',
+    name: ROUTE_NAMES.TEST,
+    component: Test,
+    meta: { requiresAuth: true }
   }
 ]
 

@@ -2,7 +2,7 @@
   <!-- 首页：用户信息管理 -->
   <div>
     <!-- 顶部导航栏 -->
-    <van-nav-bar title="用户信息管理">
+    <van-nav-bar title="首页">
       <!-- 右侧退出按钮 -->
       <template #right>
         <van-button 
