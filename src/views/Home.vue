@@ -15,6 +15,23 @@
         </van-button>
       </template>
     </van-nav-bar>
+    <div class="main">
+      <van-row class="m-2">
+        <van-col span="24" class="text-center aspect-video">
+          <van-image
+            width="100%"
+            height="100%"
+            fit="cover"
+            src="https://img.yzcdn.cn/vant/cat.jpeg"
+          />
+        </van-col>
+      </van-row>
+      <van-row class="m-2">
+        <van-col span="24" class="text-center">
+          <van-button type="primary" size="large" color="linear-gradient(to right, #4bb0ff, #6149f6)" @click="gotoScan">扫描商品</van-button>
+        </van-col>
+      </van-row>
+    </div>
 
     <!-- 下拉刷新组件 -->
     <van-pull-refresh 
@@ -124,6 +141,20 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
+import { ROUTE_NAMES } from '../router'
+
+
+/**
+ * 跳转到扫描商品页面
+ * 点击扫描商品按钮时触发
+ */
+const gotoScan = (): void => {
+  router.push({ name: ROUTE_NAMES.SCAN })
+}
+
+
+
 /**
  * 首页组件
  * 
@@ -142,10 +173,10 @@
  * - 易于维护：修改逻辑只需更新 composable
  */
 
-import { useRouter } from 'vue-router'
+// import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import { useUserProfile } from '../composables/useUserProfile'
-import { ROUTE_NAMES } from '../router'
+// import { ROUTE_NAMES } from '../router'
 import pb from '../api/pocketbase'
 import type { UserProfile } from '../types'
 

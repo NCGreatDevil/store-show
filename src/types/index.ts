@@ -55,3 +55,23 @@ export interface RouteMeta {
   requiresAuth?: boolean  // 是否需要登录认证
   title?: string          // 页面标题（可选）
 }
+
+/**
+ * 账单商品项
+ */
+export interface ReceiptItem {
+  productId: string       // 商品ID
+  productName: string     // 商品名称
+  productPrice: number    // 商品价格
+  productImage: string    // 商品图片
+  quantity: number        // 数量
+  unit: string            // 单位
+}
+
+/**
+ * 账单
+ */
+export interface Receipt {
+  id: string
+  items: ReceiptItem[]
+}

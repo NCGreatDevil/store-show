@@ -12,6 +12,7 @@ import Home from '../views/Home.vue'
 import NotFound from '../views/NotFound.vue'
 import pb from '../api/pocketbase'
 import Test from '../views/Test.vue'
+import Scan from '../views/Scan.vue'
 
 
 
@@ -25,7 +26,8 @@ export const ROUTE_NAMES = {
   LOGIN: 'login',         // 登录页
   REGISTER: 'register',   // 注册页
   NOT_FOUND: 'notFound',   // 404 页面
-  TEST: 'test'           // 测试页
+  TEST: 'test',           // 测试页
+  SCAN: 'scan',           // 扫描商品页
 } as const
 
 /**
@@ -61,8 +63,8 @@ const routes: RouteRecordRaw[] = [
   // 扫描页：需要登录认证（复用 Home 组件）
   {
     path: '/scan',
-    name: 'scan',
-    component: Home,
+    name: ROUTE_NAMES.SCAN,
+    component: Scan,
     meta: { requiresAuth: true }
   },
   // 收款页：需要登录认证（复用 Home 组件）

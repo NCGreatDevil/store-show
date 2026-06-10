@@ -26,8 +26,11 @@ import router from './router'
 // Vant UI 组件库（移动端组件库）
 import Vant from 'vant'
 
-// Vant 组件库样式
+// // Vant 组件库样式
 import 'vant/lib/index.css'
+
+// Tailwind CSS
+import './style.css'
 
 // ==================== 创建应用 ====================
 

@@ -83,13 +83,6 @@ const onChange = (index: number): void => {
  * - 组件样式使用 scoped（避免样式冲突）
  */
 
-/* 重置默认样式 */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
 /* 设置默认字体 */
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
