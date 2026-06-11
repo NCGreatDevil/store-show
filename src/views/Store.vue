@@ -1,36 +1,43 @@
 <template>
-  <!-- 首页：用户信息管理 -->
+  <!-- 商店页 -->
   <div>
     <!-- 顶部导航栏 -->
-    <van-nav-bar title="首页"></van-nav-bar>
-    <div class="main">
-      <van-row class="m-2">
-        <van-col span="24" class="text-center aspect-video">
-          <van-image
-            width="100%"
-            height="100%"
-            fit="cover"
-            src="https://img.yzcdn.cn/vant/cat.jpeg"
-          />
-        </van-col>
-      </van-row>
-      <van-row class="m-2">
-        <van-col span="24" class="text-center">
-          <van-button type="primary" size="large" color="linear-gradient(to right, #4bb0ff, #6149f6)" @click="gotoScan">扫描商品</van-button>
-        </van-col>
-      </van-row>
-    </div>
+    <van-nav-bar title="商店">
+      <!-- 右侧退出按钮 -->
+      <template #right>
+        <van-button 
+          size="small" 
+          color="#b00707" 
+          plain
+          @click="onLogout"
+        >
+          退出
+        </van-button>
+      </template>
+    </van-nav-bar>
 
+    <van-cell
+      is-link
+      title="商店信息"
+      link-type="navigateTo"
+      url="/store/edit"
+    />
+    <van-cell
+      is-link
+      title="商品信息"
+      link-type="navigateTo"
+      url="/store/products"
+    />
     <!-- 下拉刷新组件 -->
     <van-pull-refresh 
       v-model="refreshing" 
       @refresh="onRefresh"
     >
-      <!-- 无限滚动列表组件 -->
+      <!-- 无限滚动列表组件 --><!--原先是这样： finished-text="没有更多了"  -->
       <van-list
         v-model:loading="loading"
         :finished="finished"
-        finished-text="没有更多了"
+        finished-text="" 
         @load="onLoad"
       >
         <!-- 每个用户信息项（支持滑动删除） -->
@@ -129,20 +136,6 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { ROUTE_NAMES } from '../router'
-
-
-/**
- * 跳转到扫描商品页面
- * 点击扫描商品按钮时触发
- */
-const gotoScan = (): void => {
-  router.push({ name: ROUTE_NAMES.SCAN })
-}
-
-
-
 /**
  * 首页组件
  * 
@@ -161,10 +154,10 @@ const gotoScan = (): void => {
  * - 易于维护：修改逻辑只需更新 composable
  */
 
-// import { useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import { useUserProfile } from '../composables/useUserProfile'
-// import { ROUTE_NAMES } from '../router'
+import { ROUTE_NAMES } from '../router'
 import pb from '../api/pocketbase'
 import type { UserProfile } from '../types'
 

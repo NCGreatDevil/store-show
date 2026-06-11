@@ -14,6 +14,7 @@ import pb from '../api/pocketbase'
 import Test from '../views/Test.vue'
 import Scan from '../views/Scan.vue'
 import Cart from '../views/Cart.vue'
+import Store from '../views/Store.vue'
 
 
 
@@ -30,6 +31,7 @@ export const ROUTE_NAMES = {
   TEST: 'test',           // 测试页
   SCAN: 'scan',           // 扫描商品页
   CART: 'cart',           // 收款商品页
+  STORE: 'store',         // 商店页
 } as const
 
 /**
@@ -76,11 +78,18 @@ const routes: RouteRecordRaw[] = [
     component: Cart,
     meta: { requiresAuth: true }
   },
+  // 商店页：需要登录认证（复用 Home 组件）
+  {
+    path: '/store',
+    name: ROUTE_NAMES.STORE,
+    component: Home,
+    meta: { requiresAuth: true }
+  },
   // 商品页：需要登录认证（复用 Home 组件）
   {
-    path: '/products',
-    name: 'products',
-    component: Home,
+    path: '/store',
+    name: ROUTE_NAMES.STORE,
+    component: Store,
     meta: { requiresAuth: true }
   },
   // 404 页面：捕获所有未匹配的路由
