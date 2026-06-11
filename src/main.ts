@@ -23,6 +23,9 @@ import App from './App.vue'
 // 路由配置
 import router from './router'
 
+// Pinia 状态管理
+import { createPinia } from 'pinia'
+
 // Vant UI 组件库（移动端组件库）
 import Vant from 'vant'
 
@@ -41,6 +44,13 @@ import './style.css'
 const app = createApp(App)
 
 // ==================== 注册插件 ====================
+
+/**
+ * 注册 Pinia 状态管理
+ * 提供全局状态管理能力
+ */
+const pinia = createPinia()
+app.use(pinia)
 
 /**
  * 注册路由插件

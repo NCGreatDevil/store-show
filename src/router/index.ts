@@ -13,6 +13,7 @@ import NotFound from '../views/NotFound.vue'
 import pb from '../api/pocketbase'
 import Test from '../views/Test.vue'
 import Scan from '../views/Scan.vue'
+import Cart from '../views/Cart.vue'
 
 
 
@@ -28,6 +29,7 @@ export const ROUTE_NAMES = {
   NOT_FOUND: 'notFound',   // 404 页面
   TEST: 'test',           // 测试页
   SCAN: 'scan',           // 扫描商品页
+  CART: 'cart',           // 收款商品页
 } as const
 
 /**
@@ -70,8 +72,8 @@ const routes: RouteRecordRaw[] = [
   // 收款页：需要登录认证（复用 Home 组件）
   {
     path: '/cart',
-    name: 'cart',
-    component: Home,
+    name: ROUTE_NAMES.CART,
+    component: Cart,
     meta: { requiresAuth: true }
   },
   // 商品页：需要登录认证（复用 Home 组件）
