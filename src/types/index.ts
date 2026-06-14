@@ -75,3 +75,16 @@ export interface Receipt {
   id: string
   items: ReceiptItem[]
 }
+
+/**
+ * 商品
+ */
+export interface Product {
+  id: string
+  barcode: string
+  name: string
+  image: string
+  price: number
+  unit: string
+  category: string
+}

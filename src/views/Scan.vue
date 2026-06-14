@@ -11,46 +11,47 @@
       left-arrow
       @click-left="onBack"
     ></van-nav-bar>
+    <div class="main pb-[50px]" >
+      <van-sticky :offset-top="48" class="main">
+        <van-row class="m-2">
+          <van-col span="24" class="text-center relative">
+            <div id="scan-container" class="w-full aspect-video bg-gray-900" @click="toggleScan"></div>
+            <div 
+              v-if="!isScanning" 
+              class="absolute inset-0 flex items-center justify-center bg-black/60 text-white text-lg font-bold cursor-pointer"
+              @click="toggleScan"
+            >
+              点击开启摄像头
+            </div>
+          </van-col>
+        </van-row>
+      </van-sticky>   
 
-    <van-sticky :offset-top="48" class="main">
-      <van-row class="m-2">
-        <van-col span="24" class="text-center relative">
-          <div id="scan-container" class="w-full aspect-video bg-gray-900" @click="toggleScan"></div>
-          <div 
-            v-if="!isScanning" 
-            class="absolute inset-0 flex items-center justify-center bg-black/60 text-white text-lg font-bold cursor-pointer"
-            @click="toggleScan"
-          >
-            点击开启摄像头
-          </div>
-        </van-col>
-      </van-row>
-    </van-sticky>   
-
-    <van-cell-group class="mx-2 my-4 pt-4 pb-[50px]" v-if="scannedItems.length > 0">
-      <van-cell 
-        v-for="item in scannedItems" 
-        :key="item.productId"
-      >
-        <template #title>
-          <span class="ml-2">{{ item.productName }}</span>
-        </template>
-        <template #label>
-          <span class="ml-2">¥{{ item.productPrice.toFixed(2) }}/{{ item.unit }}</span>
-        </template>
-        <template #icon>
-          <van-image width="52" height="52" :src="item.productImage" fit="cover" />
-        </template>
-        <template #right-icon>
-          <van-stepper 
-            v-model="item.quantity" 
-            :min="1" 
-            :max="99" 
-            class="ml-2" 
-          />
-        </template>
-      </van-cell>
-    </van-cell-group>
+      <van-cell-group class="mx-2 my-4 pt-4" v-if="scannedItems.length > 0">
+        <van-cell 
+          v-for="item in scannedItems" 
+          :key="item.productId"
+        >
+          <template #title>
+            <span class="ml-2">{{ item.productName }}</span>
+          </template>
+          <template #label>
+            <span class="ml-2">¥{{ item.productPrice.toFixed(2) }}/{{ item.unit }}</span>
+          </template>
+          <template #icon>
+            <van-image width="52" height="52" :src="item.productImage" fit="cover" />
+          </template>
+          <template #right-icon>
+            <van-stepper 
+              v-model="item.quantity" 
+              :min="1" 
+              :max="99" 
+              class="ml-2" 
+            />
+          </template>
+        </van-cell>
+      </van-cell-group>
+    </div>
 
     <van-submit-bar
       v-if="scannedItems.length > 0"
@@ -66,6 +67,7 @@
         </span>
       </template>
     </van-submit-bar>
+
   </div>
 </template>
 
@@ -94,7 +96,7 @@ const scannedItems = ref<ReceiptItem[]>([
     productId: 'p1',
     productName: '薯片',
     productPrice: 8.5,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU4IiBmb250LWZhbWlseT0iUGluZ0ZhbmcgU0MsTWljcm9zb2Z0IFlhSGVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuiWr+eJhzwvdGV4dD48L3N2Zz4=',
+    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5pav54mGPC90ZXh0Pjwvc3ZnPg==',
     quantity: 2,
     unit: '包',
   },
@@ -102,7 +104,7 @@ const scannedItems = ref<ReceiptItem[]>([
     productId: 'p2',
     productName: '可乐',
     productPrice: 3.0,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU4IiBmb250LWZhbWlseT0iUGluZ0ZhbmcgU0MsTWljcm9zb2Z0IFlhSGVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuWPr+S5kDwvdGV4dD48L3N2Zz4=',
+    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5Y+v5LmQPC90ZXh0Pjwvc3ZnPg==',
     quantity: 3,
     unit: '瓶',
   },
@@ -110,8 +112,40 @@ const scannedItems = ref<ReceiptItem[]>([
     productId: 'p3',
     productName: '辣条',
     productPrice: 2.5,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU4IiBmb250LWZhbWlseT0iUGluZ0ZhbmcgU0MsTWljcm9zb2Z0IFlhSGVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPui+o+adoTwvdGV4dD48L3N2Zz4=',
+    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6L6j5p2hPC90ZXh0Pjwvc3ZnPg==',
     quantity: 5,
+    unit: '包',
+  },
+  {
+    productId: 'p4',
+    productName: '棒棒糖',
+    productPrice: 1.0,
+    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5L2c6L6hPC90ZXh0Pjwvc3ZnPg==',
+    quantity: 10,
+    unit: '支',
+  },
+  {
+    productId: 'p5',
+    productName: '冰红茶',
+    productPrice: 4.0,
+    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5L2e5pir5LqM5rW0PC90ZXh0Pjwvc3ZnPg==',
+    quantity: 4,
+    unit: '瓶',
+  },
+  {
+    productId: 'p6',
+    productName: '香肠',
+    productPrice: 3.5,
+    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5byA5Y+IPC90ZXh0Pjwvc3ZnPg==',
+    quantity: 6,
+    unit: '根',
+  },
+  {
+    productId: 'p7',
+    productName: '干脆面',
+    productPrice: 2.0,
+    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5bGx5Zu96ZmGPC90ZXh0Pjwvc3ZnPg==',
+    quantity: 8,
     unit: '包',
   },
 ]);
