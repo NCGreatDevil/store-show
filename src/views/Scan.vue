@@ -80,6 +80,7 @@ import { storeToRefs } from 'pinia'
 import { useReceiptStore } from '../stores/useReceiptStore'
 import { ROUTE_NAMES } from '../router'
 import type { ReceiptItem } from '../types'
+import pb from '../api/pocketbase'
 
 const router = useRouter()
 const store = useReceiptStore()
@@ -91,64 +92,7 @@ let html5QrCode: Html5Qrcode | null = null;
 const isScanning = ref(false);
 
 // 扫描到的商品列表
-const scannedItems = ref<ReceiptItem[]>([
-  {
-    productId: 'p1',
-    productName: '薯片',
-    productPrice: 8.5,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5pav54mGPC90ZXh0Pjwvc3ZnPg==',
-    quantity: 2,
-    unit: '包',
-  },
-  {
-    productId: 'p2',
-    productName: '可乐',
-    productPrice: 3.0,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5Y+v5LmQPC90ZXh0Pjwvc3ZnPg==',
-    quantity: 3,
-    unit: '瓶',
-  },
-  {
-    productId: 'p3',
-    productName: '辣条',
-    productPrice: 2.5,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+6L6j5p2hPC90ZXh0Pjwvc3ZnPg==',
-    quantity: 5,
-    unit: '包',
-  },
-  {
-    productId: 'p4',
-    productName: '棒棒糖',
-    productPrice: 1.0,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5L2c6L6hPC90ZXh0Pjwvc3ZnPg==',
-    quantity: 10,
-    unit: '支',
-  },
-  {
-    productId: 'p5',
-    productName: '冰红茶',
-    productPrice: 4.0,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5L2e5pir5LqM5rW0PC90ZXh0Pjwvc3ZnPg==',
-    quantity: 4,
-    unit: '瓶',
-  },
-  {
-    productId: 'p6',
-    productName: '香肠',
-    productPrice: 3.5,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5byA5Y+IPC90ZXh0Pjwvc3ZnPg==',
-    quantity: 6,
-    unit: '根',
-  },
-  {
-    productId: 'p7',
-    productName: '干脆面',
-    productPrice: 2.0,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU1IiBmb250LWZhbWlseT0ic2Fucy1zZXJpZiIgZm9udC1zaXplPSIyNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+5bGx5Zu96ZmGPC90ZXh0Pjwvc3ZnPg==',
-    quantity: 8,
-    unit: '包',
-  },
-]);
+const scannedItems = ref<ReceiptItem[]>([]);
 
 const totalPrice = computed(() => {
   return Math.round(
@@ -196,9 +140,33 @@ const startScanner = async () => {
         pausedTextEl.textContent = '正在识别';
       }
       try {
-        showToast('商品已加入列表');
+        // 从 PocketBase 查询商品
+        const records = await pb.collection('products').getList(1, 1, {
+          filter: `barcode = "${decodedText}"`
+        })
+        
+        if (records.items.length > 0) {
+          const product = records.items[0]
+          // 检查是否已存在
+          const existing = scannedItems.value.find(item => item.productId === product.id)
+          if (existing) {
+            existing.quantity++
+          } else {
+            scannedItems.value.push({
+              productId: product.id,
+              productName: product.name,
+              productPrice: product.price,
+              productImage: product.image || '',
+              quantity: 1,
+              unit: product.unit
+            })
+          }
+          showToast(`${product.name} 已加入列表`)
+        } else {
+          showToast('未找到该商品')
+        }
       } catch {
-        showToast('该编码商品未能识别');
+        showToast('该编码商品未能识别')
       }
       setTimeout(async () => {
         await html5QrCode!.resume();

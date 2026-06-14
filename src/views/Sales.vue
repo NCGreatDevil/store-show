@@ -44,7 +44,7 @@
           class="mx-3 mt-3 bg-white rounded-xl shadow-sm p-4 flex items-center justify-between"
         >
           <div>
-            <div class="text-base font-medium text-gray-800">{{ item.datetime }}</div>
+            <div class="text-base font-medium text-gray-800">{{ formatDateTime(item.datetime) }}</div>
             <div class="text-sm text-gray-400 mt-1">{{ item.itemCount }}件商品</div>
           </div>
           <div class="text-right">
@@ -60,8 +60,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import pb from '../api/pocketbase'
+import { formatDateTime } from '../utils/date'
 
 const router = useRouter()
 
@@ -73,51 +75,49 @@ const loading = ref(false)
 const finished = ref(false)
 const refreshing = ref(false)
 
-// 模拟销售记录数据
-const mockSales = [
-  {
-    id: '1',
-    datetime: '2026-06-08 21:10:00',
-    totalAmount: 128.50,
-    itemCount: 5,
-  },
-  {
-    id: '2',
-    datetime: '2026-06-08 15:30:00',
-    totalAmount: 45.00,
-    itemCount: 2,
-  },
-  {
-    id: '3',
-    datetime: '2026-06-07 10:40:00',
-    totalAmount: 21.35,
-    itemCount: 2,
-  },
-  {
-    id: '4',
-    datetime: '2026-06-05 02:22:00',
-    totalAmount: 14.50,
-    itemCount: 2,
-  },
-  {
-    id: '5',
-    datetime: '2026-06-01 18:30:00',
-    totalAmount: 32.80,
-    itemCount: 3,
-  },
-  {
-    id: '6',
-    datetime: '2026-05-22 09:15:00',
-    totalAmount: 8.50,
-    itemCount: 1,
-  },
-]
+// 销售记录数据
+interface SaleRecord {
+  id: string
+  datetime: string
+  totalAmount: number
+  itemCount: number
+}
 
-const list = ref(mockSales)
+const list = ref<SaleRecord[]>([])
+
+// 加载销售记录
+const loadSales = async (isRefresh = false): Promise<void> => {
+  if (isRefresh) {
+    list.value = []
+    finished.value = false
+  }
+
+  try {
+    const records = await pb.collection('sales').getList(1, 100, {
+      sort: '-created',
+      expand: 'sale_items'
+    })
+
+    list.value = records.items.map((sale: any) => ({
+      id: sale.id,
+      datetime: sale.created,
+      totalAmount: sale.total_amount,
+      itemCount: sale.item_count
+    }))
+
+    finished.value = true
+  } catch (error) {
+    console.error('加载销售记录失败:', error)
+  } finally {
+    loading.value = false
+    refreshing.value = false
+  }
+}
 
 // 根据 tab 过滤列表并计算统计数据
 const filteredList = computed(() => {
   const now = new Date()
+  // 使用本地时间的日期边界
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
   const weekStart = new Date(todayStart)
   weekStart.setDate(todayStart.getDate() - todayStart.getDay())
@@ -125,6 +125,7 @@ const filteredList = computed(() => {
   const yearStart = new Date(now.getFullYear(), 0, 1)
 
   return list.value.filter((item) => {
+    // 将 UTC 时间转换为本地时间再比较
     const itemDate = new Date(item.datetime)
     switch (activeTab.value) {
       case 'today':
@@ -149,18 +150,25 @@ const todayTotal = computed(() => {
 const todayCount = computed(() => filteredList.value.length)
 
 const onLoad = (): void => {
-  setTimeout(() => {
-    loading.value = false
-    finished.value = true
-  }, 500)
+  loading.value = false
+  finished.value = true
 }
 
 const onRefresh = (): void => {
-  finished.value = false
-  onLoad()
+  refreshing.value = true
+  loadSales(true)
 }
 
 const goBack = (): void => {
   router.back()
 }
+
+// 监听 tab 变化
+watch(activeTab, () => {
+  // tab 变化时不需要重新加载，filteredList 会自动过滤
+})
+
+onMounted(() => {
+  loadSales(true)
+})
 </script>

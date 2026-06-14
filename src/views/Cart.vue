@@ -95,6 +95,7 @@ import { storeToRefs } from 'pinia'
 import { useReceiptStore } from '../stores/useReceiptStore'
 import { ROUTE_NAMES } from '../router'
 import type { ReceiptItem } from '../types'
+import pb from '../api/pocketbase'
 
 const router = useRouter()
 const store = useReceiptStore()
@@ -135,18 +136,52 @@ const goToScan = (): void => {
 
 /** 提交账单 */
 const onSubmit = async (): Promise<void> => {
+  if (!activeReceipt.value || activeReceipt.value.items.length === 0) {
+    showToast('暂无商品可提交')
+    return
+  }
+
   try {
     await showConfirmDialog({
       title: '确认提交',
       message: `确认提交账单？共 ${quantity.value} 件商品，合计 ¥${(totalPrice.value / 100).toFixed(2)}`,
     })
+
+    // 计算总金额
+    const totalAmount = activeReceipt.value.items.reduce(
+      (sum: number, item: ReceiptItem) => sum + item.productPrice * item.quantity, 0
+    )
+
+    // 创建销售记录
+    const saleRecord = await pb.collection('sales').create({
+      total_amount: totalAmount,
+      item_count: activeReceipt.value.items.length
+    })
+
+    // 创建销售明细
+    for (const item of activeReceipt.value.items) {
+      await pb.collection('sale_items').create({
+        sale_id: saleRecord.id,
+        product_id: item.productId,
+        product_name: item.productName,
+        product_price: item.productPrice,
+        product_image: item.productImage,
+        quantity: item.quantity,
+        subtotal: item.productPrice * item.quantity
+      })
+    }
+
+    // 提交成功后清空账单
     submitReceipt(activeIndex.value)
     // 重置到第一个 tab
     activeIndex.value = 0
     switchTo(0)
     showToast('提交成功')
-  } catch {
-    // 用户取消
+  } catch (error: any) {
+    if (error?.message !== 'cancel') {
+      console.error('提交账单失败:', error)
+      showToast('提交失败，请重试')
+    }
   }
 }
 </script>

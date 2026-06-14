@@ -50,7 +50,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast, type UploaderFileListItem } from 'vant'
+import { showToast, showLoadingToast, closeToast, type UploaderFileListItem } from 'vant'
 import { useStoreInfo } from '../stores/useStoreInfo'
 
 const router = useRouter()
@@ -59,10 +59,12 @@ const storeInfo = useStoreInfo()
 const storeName = ref('')
 const storeDesc = ref('')
 const fileList = ref<UploaderFileListItem[]>([])
+const saving = ref(false)
 
 const pageTitle = computed(() => storeName.value || '商店信息')
 
-onMounted(() => {
+onMounted(async () => {
+  await storeInfo.load()
   storeName.value = storeInfo.name
   storeDesc.value = storeInfo.description
   if (storeInfo.imageUrl) {
@@ -81,16 +83,28 @@ const onDeleteImage = () => {
   storeInfo.imageUrl = ''
 }
 
-const onSave = () => {
+const onSave = async () => {
   if (!storeName.value.trim()) {
     showToast('请输入商店名称')
     return
   }
-  storeInfo.name = storeName.value
-  storeInfo.description = storeDesc.value
-  storeInfo.save()
-  showToast('保存成功')
-  router.back()
+  if (saving.value) return
+
+  saving.value = true
+  showLoadingToast({ message: '保存中...', forbidClick: true })
+
+  try {
+    storeInfo.name = storeName.value
+    storeInfo.description = storeDesc.value
+    await storeInfo.save()
+    showToast('保存成功')
+    router.back()
+  } catch {
+    showToast('保存失败，请重试')
+  } finally {
+    saving.value = false
+    closeToast()
+  }
 }
 
 const goBack = () => {
