@@ -36,7 +36,7 @@
             <span class="ml-2">{{ item.productName }}</span>
           </template>
           <template #label>
-            <span class="ml-2">¥{{ item.productPrice.toFixed(2) }}/{{ item.unit }}</span>
+            <span class="ml-2 text-base font-bold text-gray-800">¥{{ item.productPrice.toFixed(2) }}/{{ item.unit }}</span>
           </template>
           <template #icon>
             <van-image width="52" height="52" :src="item.productImage" fit="cover" />
@@ -44,9 +44,10 @@
           <template #right-icon>
             <van-stepper 
               v-model="item.quantity" 
-              :min="1" 
+              :min="0" 
               :max="99" 
               class="ml-2" 
+              @change="(value) => onQuantityChange(item, value as number)" 
             />
           </template>
         </van-cell>
@@ -73,9 +74,9 @@
 
 <script setup lang="ts">
 import { Html5Qrcode } from 'html5-qrcode';
-import { onMounted, onUnmounted, ref, computed } from 'vue'
+import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { showToast } from 'vant'
+import { showToast, showConfirmDialog } from 'vant'
 import { storeToRefs } from 'pinia'
 import { useReceiptStore } from '../stores/useReceiptStore'
 import { ROUTE_NAMES } from '../router'
@@ -94,6 +95,32 @@ const isScanning = ref(false);
 // 扫描到的商品列表
 const scannedItems = ref<ReceiptItem[]>([]);
 
+// 从 localStorage 恢复扫描数据
+const STORAGE_KEY = 'scan_items'
+const loadScannedItems = () => {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY)
+    if (saved) {
+      scannedItems.value = JSON.parse(saved)
+    }
+  } catch {
+    // 忽略解析错误
+  }
+}
+
+const saveScannedItems = () => {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(scannedItems.value))
+}
+
+const clearScannedItems = () => {
+  localStorage.removeItem(STORAGE_KEY)
+}
+
+// 自动保存到 localStorage
+watch(scannedItems, () => {
+  saveScannedItems()
+}, { deep: true })
+
 const totalPrice = computed(() => {
   return Math.round(
     scannedItems.value.reduce((sum, item) => sum + item.productPrice * item.quantity, 0) * 100
@@ -103,6 +130,28 @@ const totalPrice = computed(() => {
 const quantity = computed(() => {
   return scannedItems.value.reduce((sum, item) => sum + item.quantity, 0);
 });
+
+/** 步进器数量变化 */
+const onQuantityChange = async (item: ReceiptItem, value: number): Promise<void> => {
+  if (value === 0) {
+    try {
+      await showConfirmDialog({
+        title: '移除商品',
+        message: `确定将 ${item.productName} 从账单中移除吗？`,
+        confirmButtonText: '移除',
+        cancelButtonText: '取消'
+      })
+      // 用户确认，移除商品
+      const index = scannedItems.value.findIndex(i => i.productId === item.productId)
+      if (index !== -1) {
+        scannedItems.value.splice(index, 1)
+      }
+    } catch {
+      // 用户取消，恢复数量为 1
+      item.quantity = 1
+    }
+  }
+};
 
 const INACTIVITY_TIMEOUT = 30000;
 let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
@@ -147,6 +196,7 @@ const startScanner = async () => {
         
         if (records.items.length > 0) {
           const product = records.items[0]
+          const imageUrl = product.image ? pb.files.getURL(product, product.image) : ''
           // 检查是否已存在
           const existing = scannedItems.value.find(item => item.productId === product.id)
           if (existing) {
@@ -156,14 +206,29 @@ const startScanner = async () => {
               productId: product.id,
               productName: product.name,
               productPrice: product.price,
-              productImage: product.image || '',
+              productImage: imageUrl,
               quantity: 1,
               unit: product.unit
             })
           }
           showToast(`${product.name} 已加入列表`)
         } else {
-          showToast('未找到该商品')
+          // 商品不存在，询问是否添加
+          try {
+            await showConfirmDialog({
+              title: '未找到该商品',
+              message: `条码 ${decodedText} 不在商品列表中，是否添加到商品管理？`,
+              confirmButtonText: '去添加',
+              cancelButtonText: '取消'
+            })
+            // 用户确认，跳转到新增商品页，携带条码
+            router.push({
+              name: ROUTE_NAMES.PRODUCTS_EDIT,
+              query: { barcode: decodedText }
+            })
+          } catch {
+            // 用户取消，不做处理
+          }
         }
       } catch {
         showToast('该编码商品未能识别')
@@ -227,11 +292,13 @@ const onSubmit = (): void => {
   showToast('商品已同步到账单')
   // 清空扫描列表
   scannedItems.value = []
+  clearScannedItems()
   // 跳转到收款页
   router.push({ name: ROUTE_NAMES.CART })
 }
 
 onMounted(async () => {
+  loadScannedItems()
   await startScanner();
 });
 

@@ -74,13 +74,13 @@ onMounted(async () => {
 
 const afterRead = (file: UploaderFileListItem | UploaderFileListItem[]) => {
   const item = Array.isArray(file) ? file[0] : file
-  if (item.content) {
-    storeInfo.imageUrl = item.content as string
+  if (item.file) {
+    storeInfo.setImageFile(item.file)
   }
 }
 
 const onDeleteImage = () => {
-  storeInfo.imageUrl = ''
+  storeInfo.deleteImage()
 }
 
 const onSave = async () => {

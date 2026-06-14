@@ -41,7 +41,7 @@
           </div>
 
           <!-- 有商品的账单列表 -->
-          <van-cell-group class="mx-2 my-4 pt-4" v-else>
+          <van-cell-group class="mx-2 my-4" v-else>
             <van-cell 
               v-for="item in receipt.items" 
               :key="item.productId"
@@ -50,7 +50,7 @@
                 <span class="ml-2">{{ item.productName }}</span>
               </template>
               <template #label>
-                <span class="ml-2">¥{{ item.productPrice.toFixed(2) }}/{{ item.unit }}</span>
+                <span class="ml-2 text-base font-bold text-gray-800">¥{{ item.productPrice.toFixed(2) }}/{{ item.unit }}</span>
               </template>
               <template #icon>
                 <van-image width="52" height="52" :src="item.productImage" fit="cover" />
@@ -58,10 +58,10 @@
               <template #right-icon>
                 <van-stepper 
                   v-model="item.quantity" 
-                  :min="1" 
+                  :min="0" 
                   :max="99" 
                   class="ml-2" 
-                  @change="(value) => onQuantityChange(item.productId, value as number)" 
+                  @change="(value) => onQuantityChange(item, value as number)" 
                 />
               </template>
             </van-cell>
@@ -73,7 +73,7 @@
     <van-submit-bar
       v-if="activeReceipt && activeReceipt.items.length > 0"
       :price="totalPrice"
-      button-text="提交账单"
+      button-text="确认收款"
       @submit="onSubmit"
       class="bottom-[50px]!"
     >
@@ -102,7 +102,7 @@ const store = useReceiptStore()
 
 // 使用 storeToRefs 保持响应性
 const { receipts, activeIndex, activeReceipt, isFull } = storeToRefs(store)
-const { addReceipt, switchTo, submitReceipt, onQuantityChange } = store
+const { addReceipt, switchTo, submitReceipt, onQuantityChange: storeOnQuantityChange } = store
 
 // 当前账单的总价和数量
 const totalPrice = computed(() => {
@@ -134,6 +134,31 @@ const goToScan = (): void => {
   router.push({ name: ROUTE_NAMES.SCAN })
 }
 
+/** 步进器数量变化 */
+const onQuantityChange = async (item: ReceiptItem, value: number): Promise<void> => {
+  if (value === 0) {
+    try {
+      await showConfirmDialog({
+        title: '移除商品',
+        message: `确定将 ${item.productName} 从账单中移除吗？`,
+        confirmButtonText: '移除',
+        cancelButtonText: '取消'
+      })
+      // 用户确认，移除商品
+      const index = activeReceipt.value.items.findIndex(i => i.productId === item.productId)
+      if (index !== -1) {
+        activeReceipt.value.items.splice(index, 1)
+      }
+    } catch {
+      // 用户取消，恢复数量为 1
+      item.quantity = 1
+    }
+  } else {
+    // 正常数量变化，调用 store 方法
+    storeOnQuantityChange(item.productId, value)
+  }
+}
+
 /** 提交账单 */
 const onSubmit = async (): Promise<void> => {
   if (!activeReceipt.value || activeReceipt.value.items.length === 0) {
@@ -154,6 +179,7 @@ const onSubmit = async (): Promise<void> => {
 
     // 创建销售记录
     const saleRecord = await pb.collection('sales').create({
+      user_id: pb.authStore.record?.id || '',
       total_amount: totalAmount,
       item_count: activeReceipt.value.items.length
     })

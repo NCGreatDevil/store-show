@@ -41,7 +41,8 @@
         <div
           v-for="item in filteredList"
           :key="item.id"
-          class="mx-3 mt-3 bg-white rounded-xl shadow-sm p-4 flex items-center justify-between"
+          class="mx-3 mt-3 bg-white rounded-xl shadow-sm p-4 flex items-center justify-between cursor-pointer"
+          @click="onViewDetail(item)"
         >
           <div>
             <div class="text-base font-medium text-gray-800">{{ formatDateTime(item.datetime) }}</div>
@@ -161,6 +162,10 @@ const onRefresh = (): void => {
 
 const goBack = (): void => {
   router.back()
+}
+
+const onViewDetail = (item: SaleRecord): void => {
+  router.push({ name: 'salesDetail', query: { id: item.id } })
 }
 
 // 监听 tab 变化

@@ -13,6 +13,8 @@ export const useStoreInfo = defineStore('storeInfo', () => {
   const imageUrl = ref('')
   const recordId = ref('')
   const loading = ref(false)
+  let pendingImageFile: File | undefined
+  let imageDeleted = false
 
   // 从 PocketBase 加载商店信息
   async function load() {
@@ -25,7 +27,7 @@ export const useStoreInfo = defineStore('storeInfo', () => {
         recordId.value = record.id
         name.value = record.name || ''
         description.value = record.description || ''
-        imageUrl.value = record.image || ''
+        imageUrl.value = record.image ? pb.files.getURL(record, record.image) : ''
       }
     } catch (error) {
       console.error('加载商店信息失败:', error)
@@ -34,14 +36,33 @@ export const useStoreInfo = defineStore('storeInfo', () => {
     }
   }
 
+  // 设置待上传的图片文件
+  function setImageFile(file?: File) {
+    pendingImageFile = file
+  }
+
+  // 标记图片已删除
+  function deleteImage() {
+    pendingImageFile = undefined
+    imageDeleted = true
+    imageUrl.value = ''
+  }
+
   // 保存到 PocketBase
   async function save() {
     try {
-      const data = {
+      const data: Record<string, unknown> = {
         name: name.value,
         description: description.value,
-        image: imageUrl.value
+        user_id: pb.authStore.record?.id || ''
       }
+
+      if (pendingImageFile) {
+        data.image = pendingImageFile
+      } else if (imageDeleted) {
+        data.image = ''
+      }
+      // 未修改图片则不设置 image 字段，保留原值
 
       if (recordId.value) {
         await pb.collection('store_info').update(recordId.value, data)
@@ -49,6 +70,10 @@ export const useStoreInfo = defineStore('storeInfo', () => {
         const record = await pb.collection('store_info').create(data)
         recordId.value = record.id
       }
+
+      // 保存成功后重置状态
+      pendingImageFile = undefined
+      imageDeleted = false
     } catch (error) {
       console.error('保存商店信息失败:', error)
       throw error
@@ -60,6 +85,8 @@ export const useStoreInfo = defineStore('storeInfo', () => {
     description.value = ''
     imageUrl.value = ''
     recordId.value = ''
+    pendingImageFile = undefined
+    imageDeleted = false
   }
 
   return {
@@ -70,5 +97,7 @@ export const useStoreInfo = defineStore('storeInfo', () => {
     load,
     save,
     reset,
+    setImageFile,
+    deleteImage,
   }
 })

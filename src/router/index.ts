@@ -16,8 +16,10 @@ import Scan from '../views/Scan.vue'
 import Cart from '../views/Cart.vue'
 import Store from '../views/Store.vue'
 import Products from '../views/Products.vue'
+import ProductsEdit from '../views/ProductsEdit.vue'
 import StoreEdit from '../views/StoreEdit.vue'
 import Sales from '../views/Sales.vue'
+import SalesDetail from '../views/SalesDetail.vue'
 
 
 
@@ -36,8 +38,10 @@ export const ROUTE_NAMES = {
   CART: 'cart',           // 收款商品页
   STORE: 'store',         // 商店页
   PRODUCTS: 'products',   // 商品页
+  PRODUCTS_EDIT: 'productsEdit', // 商品编辑页
   STORE_EDIT: 'storeEdit', // 商店编辑页
   SALES: 'sales',         // 销售记录页
+  SALES_DETAIL: 'salesDetail', // 账单详情页
 } as const
 
 /**
@@ -105,11 +109,25 @@ const routes: RouteRecordRaw[] = [
     component: Products,
     meta: { requiresAuth: true }
   },
+  // 商品编辑页：需要登录认证
+  {
+    path: '/store/products/edit',
+    name: ROUTE_NAMES.PRODUCTS_EDIT,
+    component: ProductsEdit,
+    meta: { requiresAuth: true }
+  },
   // 销售记录页：需要登录认证（复用 Home 组件）
   {
     path: '/store/sales',
     name: ROUTE_NAMES.SALES,
     component: Sales,
+    meta: { requiresAuth: true }
+  },
+  // 账单详情页：需要登录认证
+  {
+    path: '/store/sales/detail',
+    name: ROUTE_NAMES.SALES_DETAIL,
+    component: SalesDetail,
     meta: { requiresAuth: true }
   },
   // 404 页面：捕获所有未匹配的路由

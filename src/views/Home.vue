@@ -11,20 +11,17 @@
     <div class="main pb-[10px]" >
       <van-row class="m-2">
         <van-col span="24" class="text-center aspect-video">
+          <div v-if="storeInfo.loading" class="flex items-center justify-center h-full">
+            <van-skeleton-image round class="w-full" />
+          </div>
           <van-image
-            v-if="storeImage"
+            v-else-if="storeImage"
             width="100%"
             height="100%"
             fit="cover"
             :src="storeImage"
           />
-          <van-image
-            v-else
-            width="100%"
-            height="100%"
-            fit="cover"
-            src="https://img.yzcdn.cn/vant/cat.jpeg"
-          />
+          <van-empty v-else description="暂无图片" />
         </van-col>
       </van-row>
       <van-row class="m-2">
@@ -52,9 +49,8 @@
       <!-- 热销商品 -->
       <div class="mx-3 mt-4">
         <div class="flex items-center justify-between mb-2">
-          
           <span class="text-gray-700 font-medium"><van-icon name="fire" color="#ee0a24" />热销商品</span>
-          <van-radio-group v-model="isWeekly" direction="horizontal" icon-size="16px">
+          <van-radio-group v-model="isWeekly" direction="horizontal" icon-size="16px" @change="togglePeriod">
             <van-radio :name="false">按天</van-radio>
             <van-radio :name="true">按周</van-radio>
           </van-radio-group>
@@ -81,19 +77,35 @@
             </template>
           </van-cell>
         </van-cell-group>
+        <van-empty v-if="!loading && hotProducts.length === 0" description="暂无销售数据" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ROUTE_NAMES } from '../router'
 import { useStoreInfo } from '../stores/useStoreInfo'
+import { useHomeStats } from '../composables/useHomeStats'
 
 const router = useRouter()
 const storeInfo = useStoreInfo()
+const {
+  todayTotalAmount,
+  todaySaleCount,
+  hotProducts,
+  loading,
+  isWeekly,
+  loadStats,
+  togglePeriod
+} = useHomeStats()
+
+onMounted(() => {
+  storeInfo.load()
+  loadStats()
+})
 
 const pageTitle = computed(() => {
   const name = storeInfo.name || '首页'
@@ -101,49 +113,6 @@ const pageTitle = computed(() => {
 })
 
 const storeImage = computed(() => storeInfo.imageUrl)
-
-// 假数据统计
-const todayTotalAmount = ref(1286.50)
-const todaySaleCount = ref(42)
-
-// 按天/按周切换，默认按天
-const isWeekly = ref(false)
-
-// 热销商品假数据（按销量倒序）
-const hotProducts = ref([
-  {
-    productId: 'p1',
-    productName: '可乐',
-    productPrice: 3.0,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU4IiBmb250LWZhbWlseT0iUGluZ0ZhbmcgU0MsTWljcm9zb2Z0IFlhSGVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuWPr+S5kDwvdGV4dD48L3N2Zz4=',
-    unit: '瓶',
-    sales: 128,
-  },
-  {
-    productId: 'p2',
-    productName: '薯片',
-    productPrice: 8.5,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU4IiBmb250LWZhbWlseT0iUGluZ0ZhbmcgU0MsTWljcm9zb2Z0IFlhSGVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuiWr+eJhzwvdGV4dD48L3N2Zz4=',
-    unit: '包',
-    sales: 86,
-  },
-  {
-    productId: 'p3',
-    productName: '辣条',
-    productPrice: 2.5,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU4IiBmb250LWZhbWlseT0iUGluZ0ZhbmcgU0MsTWljcm9zb2Z0IFlhSGVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPui+o+adoTwvdGV4dD48L3N2Zz4=',
-    unit: '包',
-    sales: 65,
-  },
-  {
-    productId: 'p4',
-    productName: '矿泉水',
-    productPrice: 1.5,
-    productImage: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxMDAiIGhlaWdodD0iMTAwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZThlOGU4Ii8+PHRleHQgeD0iNTAiIHk9IjU4IiBmb250LWZhbWlseT0iUGluZ0ZhbmcgU0MsTWljcm9zb2Z0IFlhSGVpLHNhbnMtc2VyaWYiIGZvbnQtc2l6ZT0iMjgiIGZpbGw9IiM2NjYiIHRleHQtYW5jaG9yPSJtaWRkbGUiPuWkqeaYrzwvdGV4dD48L3N2Zz4=',
-    unit: '瓶',
-    sales: 42,
-  },
-])
 
 const gotoScan = (): void => {
   router.push({ name: ROUTE_NAMES.SCAN })

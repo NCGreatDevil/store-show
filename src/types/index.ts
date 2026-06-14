@@ -88,3 +88,16 @@ export interface Product {
   unit: string
   category: string
 }
+
+/**
+ * 商品表单数据
+ */
+export interface ProductForm {
+  id?: string
+  barcode: string
+  name: string
+  price: number
+  unit: string
+  category: string
+  image: string
+}

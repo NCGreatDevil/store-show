@@ -11,7 +11,9 @@
     - 会根据当前 URL 显示对应的页面组件
     - 例如：访问 /login 时显示 Login.vue，访问 / 时显示 Home.vue
   -->
-  <router-view />
+  <keep-alive>
+    <router-view />
+  </keep-alive>
 
   <van-tabbar
     v-if="showTabbar"
