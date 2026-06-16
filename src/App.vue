@@ -25,9 +25,7 @@
   >
     <van-tabbar-item to="/" icon="home-o">首页</van-tabbar-item>
     <van-tabbar-item to="/scan" icon="scan">扫描</van-tabbar-item>
-    <van-tabbar-item to="/cart" icon="shopping-cart-o" >
-      收款
-    </van-tabbar-item>
+    <van-tabbar-item to="/cart" icon="shopping-cart-o" >收款</van-tabbar-item>
     <van-tabbar-item to="/store" icon="shop-o">商店</van-tabbar-item>
     <!-- <van-tabbar-item to="/test" icon="orders-o">测试</van-tabbar-item> -->
   </van-tabbar>

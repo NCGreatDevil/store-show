@@ -16,6 +16,12 @@
       </template>
     </van-nav-bar>
 
+    <!-- 扫描功能测试 -->
+    <div class="p-4">
+      <h3 class="text-lg font-bold mb-2">扫描测试</h3>
+      <div id="qr-reader" class="w-full max-w-[50vw] mx-auto"></div>
+    </div>
+
     <!-- 下拉刷新组件 -->
     <van-pull-refresh 
       v-model="refreshing" 
@@ -142,6 +148,8 @@
  * - 易于维护：修改逻辑只需更新 composable
  */
 
+import { onMounted, onUnmounted } from 'vue'
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
 import { useUserProfile } from '../composables/useUserProfile'
@@ -153,6 +161,56 @@ import type { UserProfile } from '../types'
 
 // 获取路由实例，用于页面跳转
 const router = useRouter()
+
+// ==================== 扫描功能测试 ====================
+
+let html5QrCode: Html5Qrcode | null = null
+
+onMounted(async () => {
+  html5QrCode = new Html5Qrcode('qr-reader')
+  
+  // 动态计算扫描框大小，不超过容器宽度的 80%
+  const container = document.getElementById('qr-reader')
+  const containerWidth = container?.clientWidth || window.innerWidth
+  const boxSize = Math.min(containerWidth * 0.8, 250)
+  
+  const config = { 
+    fps: 10, 
+    qrbox: { width: boxSize, height: boxSize },
+    formatsToSupport: [
+      Html5QrcodeSupportedFormats.EAN_13,
+      Html5QrcodeSupportedFormats.EAN_8,
+      Html5QrcodeSupportedFormats.CODE_128,
+      Html5QrcodeSupportedFormats.CODE_39,
+      Html5QrcodeSupportedFormats.UPC_A,
+      Html5QrcodeSupportedFormats.UPC_E,
+      Html5QrcodeSupportedFormats.QR_CODE
+    ]
+  }
+  console.log('容器宽度:', containerWidth, '扫描框大小:', boxSize)
+  
+  try {
+    await html5QrCode.start(
+      { facingMode: 'environment' },
+      config,
+      (decodedText) => {
+        console.log('扫描结果:', decodedText)
+        showToast(`扫描成功: ${decodedText}`)
+      },
+      () => {}
+    )
+  } catch (err) {
+    console.error('启动扫描器失败:', err)
+    showToast('启动扫描器失败: ' + (err as Error).message)
+  }
+})
+
+onUnmounted(async () => {
+  if (html5QrCode && html5QrCode.isScanning) {
+    await html5QrCode.stop()
+    html5QrCode.clear()
+  }
+})
 
 // ==================== 用户信息管理 ====================
 

@@ -34,13 +34,14 @@
       <van-grid :column-num="2" :border="false" class="m-3 border border-gray-200 rounded-xl overflow-hidden">
         <van-grid-item>
           <div class="stat-card bg-gray-50 rounded-xl p-4 shadow-sm">
-            <div class="stat-value text-blue-500 text-xl font-bold">¥{{ todayTotalAmount.toFixed(2) }}</div>
+            <div class="stat-value text-blue-500 text-xl font-bold text-center
+          ">¥{{ todayTotalAmount.toFixed(2) }}</div>
             <div class="stat-label text-gray-500 mt-1">今日销售额</div>
           </div>
         </van-grid-item>
         <van-grid-item>
           <div class="stat-card bg-gray-50 rounded-xl p-4 shadow-sm">
-            <div class="stat-value text-blue-500 text-xl font-bold">{{ todaySaleCount }}</div>
+            <div class="stat-value text-blue-500 text-xl font-bold middle text-center">{{ todaySaleCount }}</div>
             <div class="stat-label text-gray-500 mt-1">今日订单</div>
           </div>
         </van-grid-item>

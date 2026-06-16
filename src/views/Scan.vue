@@ -15,7 +15,7 @@
       <van-sticky :offset-top="48" class="main">
         <van-row class="m-2">
           <van-col span="24" class="text-center relative">
-            <div id="scan-container" class="w-full aspect-video bg-gray-900" @click="toggleScan"></div>
+            <div id="scan-container" class="w-full aspect-3/4 bg-gray-900" @click="toggleScan"></div>
             <div 
               v-if="!isScanning" 
               class="absolute inset-0 flex items-center justify-center bg-black/60 text-white text-lg font-bold cursor-pointer"
@@ -26,32 +26,6 @@
           </van-col>
         </van-row>
       </van-sticky>   
-
-      <van-cell-group class="mx-2 my-4 pt-4" v-if="scannedItems.length > 0">
-        <van-cell 
-          v-for="item in scannedItems" 
-          :key="item.productId"
-        >
-          <template #title>
-            <span class="ml-2">{{ item.productName }}</span>
-          </template>
-          <template #label>
-            <span class="ml-2 text-base font-bold text-gray-800">¥{{ item.productPrice.toFixed(2) }}/{{ item.unit }}</span>
-          </template>
-          <template #icon>
-            <van-image width="52" height="52" :src="item.productImage" fit="cover" />
-          </template>
-          <template #right-icon>
-            <van-stepper 
-              v-model="item.quantity" 
-              :min="0" 
-              :max="99" 
-              class="ml-2" 
-              @change="(value) => onQuantityChange(item, value as number)" 
-            />
-          </template>
-        </van-cell>
-      </van-cell-group>
     </div>
 
     <van-submit-bar
@@ -62,18 +36,56 @@
       class="bottom-[50px]!"
     >
       <template #default>
-        <span class="van-submit-bar__text">
+        <span class="van-submit-bar__text" @click.stop="toggleDropdown" >
+          <!-- <van-icon name="arrow-up" size="16" class="mr-1 cursor-pointer" @click.stop="toggleDropdown" /> -->
           数量: 
           <span class="van-submit-bar__price van-submit-bar__price-integer">{{ quantity }}</span>
         </span>
       </template>
     </van-submit-bar>
 
+    <!-- 商品列表弹出层 -->
+    <van-popup v-model:show="showItemList" position="bottom" round :style="{ height: '90%' }">
+      <div class="flex items-center justify-center p-4 border-b border-gray-200">
+        <span class="font-bold text-lg">已扫描商品</span>
+      </div>
+      <div class="overflow-y-auto" style="height: calc(100% - 140px)">
+        <van-cell-group inset class="my-2">
+          <van-cell 
+            v-for="item in scannedItems" 
+            :key="item.productId"
+          >
+            <template #title>
+              <span class="ml-2">{{ item.productName }}</span>
+            </template>
+            <template #label>
+              <span class="ml-2 text-base font-bold text-gray-800">¥{{ item.productPrice.toFixed(2) }}/{{ item.unit }}</span>
+            </template>
+            <template #icon>
+              <van-image width="52" height="52" :src="item.productImage" fit="cover" />
+            </template>
+            <template #right-icon>
+              <van-stepper 
+                v-model="item.quantity" 
+                :min="0" 
+                :max="99" 
+                class="ml-2" 
+                @change="(value) => onQuantityChange(item, value as number)" 
+              />
+            </template>
+          </van-cell>
+        </van-cell-group>
+      </div>
+      <div class="p-4">
+        <van-button block type="default" @click="showItemList = false">关闭</van-button>
+      </div>
+    </van-popup>
+
   </div>
 </template>
 
 <script setup lang="ts">
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 import { onMounted, onUnmounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
@@ -91,6 +103,12 @@ const { addItemsToActive, addReceipt, switchTo } = store
 // 扫描器相关
 let html5QrCode: Html5Qrcode | null = null; 
 const isScanning = ref(false);
+
+// 商品列表弹出层
+const showItemList = ref(false);
+const toggleDropdown = () => {
+  showItemList.value = !showItemList.value;
+};
 
 // 扫描到的商品列表
 const scannedItems = ref<ReceiptItem[]>([]);
@@ -153,7 +171,7 @@ const onQuantityChange = async (item: ReceiptItem, value: number): Promise<void>
   }
 };
 
-const INACTIVITY_TIMEOUT = 30000;
+const INACTIVITY_TIMEOUT = 30000; // 30s
 let inactivityTimer: ReturnType<typeof setTimeout> | null = null;
 
 const resetInactivityTimer = () => {
@@ -174,12 +192,34 @@ const resetInactivityTimer = () => {
 
 const startScanner = async () => {
   html5QrCode = new Html5Qrcode('scan-container');
+  
+  // 获取容器实际尺寸，动态计算扫描框（条形码需要扁框）
+  const container = document.getElementById('scan-container')
+  const containerWidth = container?.clientWidth || window.innerWidth - 32
+  const containerHeight = container?.clientHeight || containerWidth * 9 / 16 // aspect-video = 16:9
+  
+  // 扫描框尽可能大，贴近容器边框，留 8px 边距
+  const margin = 8
+  const qrboxWidth = containerWidth - margin * 2
+  const qrboxHeight = Math.min(containerHeight * 0.6, containerWidth * 0.5) // 扁框适合条形码
+  
+  console.log('容器尺寸:', containerWidth, 'x', containerHeight, '扫描框:', qrboxWidth, 'x', qrboxHeight)
+  
   await html5QrCode.start(
     { facingMode: 'environment' },
     {
       fps: 10,
-      qrbox: { width: 320, height: 230 }
-    },
+      qrbox: { width: qrboxWidth, height: qrboxHeight },
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E,
+        Html5QrcodeSupportedFormats.QR_CODE
+      ]
+    } as any,
     async (decodedText) => {
       console.log('扫描结果:', decodedText);
       resetInactivityTimer();
@@ -299,7 +339,7 @@ const onSubmit = (): void => {
 
 onMounted(async () => {
   loadScannedItems()
-  await startScanner();
+  await startScanner()
 });
 
 onUnmounted(async () => {
@@ -319,17 +359,20 @@ onUnmounted(async () => {
 <style scoped>
 #scan-container {
   width: 100%;
-  aspect-ratio: 16 / 9;
   overflow: hidden;
   position: relative;
 }
 
-#scan-container video {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover;
+/* 提交按钮橙色到红色水平渐变 */
+:deep(.van-submit-bar__button) {
+  background: linear-gradient(to right, #ff9000, #ff5000) !important;
+  border: none !important;
+}
+</style>
+
+<style>
+/* 让扫描框靠上：覆盖 html5-qrcode 的居中定位 */
+#qr-shaded-region {
+  top: 0% !important;
 }
 </style>
