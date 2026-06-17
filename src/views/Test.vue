@@ -19,7 +19,18 @@
     <!-- 扫描功能测试 -->
     <div class="p-4">
       <h3 class="text-lg font-bold mb-2">扫描测试</h3>
-      <div id="qr-reader" class="w-full max-w-[50vw] mx-auto"></div>
+      <div id="qr-reader" class="w-full max-w-[50vw] mx-auto" @click="triggerManualFocus"></div>
+      <!-- 闪光灯按钮 -->
+      <div class="flex justify-center mt-2">
+        <van-button 
+          size="small" 
+          :icon="isTorchOn ? 'bulb-o' : 'bulb-o'" 
+          :type="isTorchOn ? 'warning' : 'default'"
+          @click="switchTorch"
+        >
+          {{ isTorchOn ? '关闭闪光灯' : '开启闪光灯' }}
+        </van-button>
+      </div>
     </div>
 
     <!-- 下拉刷新组件 -->
@@ -148,7 +159,7 @@
  * - 易于维护：修改逻辑只需更新 composable
  */
 
-import { onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import { useRouter } from 'vue-router'
 import { showToast, showConfirmDialog } from 'vant'
@@ -165,6 +176,8 @@ const router = useRouter()
 // ==================== 扫描功能测试 ====================
 
 let html5QrCode: Html5Qrcode | null = null
+let videoTrack: MediaStreamTrack | null = null
+const isTorchOn = ref(false)
 
 onMounted(async () => {
   html5QrCode = new Html5Qrcode('qr-reader')
@@ -177,6 +190,7 @@ onMounted(async () => {
   const config = { 
     fps: 10, 
     qrbox: { width: boxSize, height: boxSize },
+    focusMode: 'continuous',
     formatsToSupport: [
       Html5QrcodeSupportedFormats.EAN_13,
       Html5QrcodeSupportedFormats.EAN_8,
@@ -199,6 +213,14 @@ onMounted(async () => {
       },
       () => {}
     )
+    
+    // 保存视频轨道用于对焦 - 从 DOM 中获取视频元素
+    await new Promise(resolve => setTimeout(resolve, 500))
+    const videoElement = document.querySelector('#qr-reader video') as HTMLVideoElement
+    if (videoElement && videoElement.srcObject) {
+      const stream = videoElement.srcObject as MediaStream
+      videoTrack = stream.getVideoTracks()[0]
+    }
   } catch (err) {
     console.error('启动扫描器失败:', err)
     showToast('启动扫描器失败: ' + (err as Error).message)
@@ -211,6 +233,54 @@ onUnmounted(async () => {
     html5QrCode.clear()
   }
 })
+
+// 切换闪光灯
+async function switchTorch() {
+  if (!videoTrack) {
+    showToast('视频轨道未就绪')
+    return
+  }
+  try {
+    const cap = (videoTrack as any).getCapabilities()
+    if (!cap.torch) {
+      showToast('当前设备不支持闪光灯')
+      return
+    }
+    // 切换 torch 状态
+    await videoTrack.applyConstraints({
+      advanced: [{ torch: !isTorchOn.value } as any]
+    })
+    isTorchOn.value = !isTorchOn.value
+  } catch (err) {
+    console.error('切换闪光灯失败:', err)
+    showToast('切换闪光灯失败')
+  }
+}
+
+// 点击手动对焦
+async function triggerManualFocus() {
+  if (!videoTrack) {
+    showToast('视频轨道未就绪')
+    return
+  }
+  try {
+    const cap = (videoTrack as any).getCapabilities()
+    console.log('相机能力:', cap)
+    if (!cap.focusMode || !cap.focusDistance) {
+      console.log('设备不支持手动对焦')
+      showToast('当前设备不支持手动对焦（iOS Safari 限制）')
+      return
+    }
+    await videoTrack.applyConstraints({
+      advanced: [{ focusMode: 'single-shot' } as any]
+    })
+    console.log('手动对焦触发')
+    showToast('手动对焦已触发')
+  } catch (err) {
+    console.error('对焦失败:', err)
+    showToast('对焦失败')
+  }
+}
 
 // ==================== 用户信息管理 ====================
 

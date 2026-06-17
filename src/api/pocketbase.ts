@@ -42,5 +42,20 @@ const POCKETBASE_URL = 'https://ma.cloud-ip.cc/'
  */
 const pb = new PocketBase(POCKETBASE_URL)
 
+// 自动刷新 token，防止过期导致页面跳转到登录页
+// PocketBase token 默认有效期较短，需要定期刷新
+const refreshAuth = async () => {
+  if (pb.authStore.isValid) {
+    try {
+      await pb.collection('users').authRefresh()
+    } catch {
+      // 刷新失败时忽略，由路由守卫处理跳转
+    }
+  }
+}
+
+// 每 10 分钟自动刷新一次 token（PocketBase 默认 token 有效期 1 小时）
+setInterval(refreshAuth, 10 * 60 * 1000)
+
 // 导出 PocketBase 客户端实例
 export default pb
